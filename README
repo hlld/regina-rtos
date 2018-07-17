@@ -1,0 +1,122 @@
+/********************************** REGINA DIGEST ************************************/
+Regina is a free and useful RTOS. Now it runs successfully on STM32 F1/F4F/F7 series. 
+If you are interested in it, download and have a test at your board. if you have some 
+questions want to discuss with me, send me a mail and I'd like to help you if I know. 
+Here is my mail: hlldmail@qq.com (I look forward to your letters.)
+
+Regina provides the universal functions to help programmer to implement threads in an 
+easy way. It's much smaller than those RTOSs you might have seen. However, it doesn't 
+mean that Regina can't bring you those modules like soft-timer, message, and semaphore. 
+It also has the ability to create tasks with unlimited priority and amount in theory. 
+Now this version is 2.0, I finished it in 14/7/2018. The reason I have to do it is that 
+previous versions all have a bad annotation and construction. In this verision, I added 
+the queue structure to make message module more practical. And the code construction is 
+also more precise than previous versions. I guess this version will be the last version 
+of Regina and I'm going to use it at my graduation project. PS: Sorry for I deleted all 
+of the annotation as I have a poor English and I just can't stand those bad annotation.
+
+/********************************* HOW TO USE REGINA *********************************/
+NOTE: Only two functions below are allowed to invoked in exception handling context.
+
+RESULT I_post_semisr(T_sem_handl handl);
+RESULT I_send_msgisr(T_msgq_handl handl, void *pdata, DWORD size);
+
+/********************************** SIMPLE EXAMPLE ***********************************/
+NOTE: Here is a simple example for how to start Regina.
+
+#include    "regina.h"                          /* Include the RTOS header file      */
+T_task_handl    task_handl;                     /* Declare the task handle as an ID  */
+void task_function(void *uarg) {                /* Write your task function          */
+    for(; ;) {                                  /* The dead loop in task is optional */
+        ... your logic code ...
+}}
+
+int main(void) {
+    I_rtos_init();
+	
+    I_create_task(T_task_handl* handl,   /* The address of the task handle           */
+        INT16U prior,                    /* The task priority (0(max) - 65535(min))  */
+        INT16U stksize,                  /* The task stack size                      */
+        void (*pfunc)(void *uarg),       /* The task function pointer                */
+        void* uarg);                     /* The argument of the task function        */
+
+	I_rtos_start();
+}
+/********************************* SIMPLE DECLARATION ********************************/
+NOTE: Here are The explication of other APIs for task scheduling.
+
+void I_task_exit(void);                          /* Drop the current running task    */
+void I_drop_task(T_task_handl *handl);           /* The task handle to be deleted    */
+void I_suspend_task(T_task_handl handl);         /* The task handle to be suspended  */
+void I_restore_task(T_task_handl handl);         /* The task handle to be restored   */
+void I_task_sleep(DWORD xms);                    /* Sleep the current task           */
+
+/************************************ SOFT TIMER *************************************/
+NOTE: Here are The explication of the APIs for soft-timer. Before we use this module, 
+we need to set the definition of D_ENABLE_SOFT_TIMER to 1u in config.h.
+
+T_tim_handl     timer_handl;                 /* Declare the timer handle as an ID    */
+void timer_function(void *uarg)              /* Write your timer call-back function  */
+{
+    ... your logic code ... (never to have a dead loop)
+}
+
+void I_create_timer(T_tim_handl *handl,          /* The address of the timer handle  */
+        INT8U isperiodic,                        /* The timer is periodic or not     */
+        DWORD period,                            /* The period of the timer          */
+        void (*pfunc)(void *uarg),               /* The call-back function pointer   */
+        void *uarg);                             /* The argument of the function     */
+
+void I_drop_timer(T_tim_handl *handl);           /* The timer handle to be deleted   */
+void I_start_timer(T_tim_handl handl);           /* The timer handle to be started   */
+void I_stop_timer(T_tim_handl handl);            /* The timer handle to be stopped   */
+void I_set_timer_arg(T_tim_handl handl,          /* The timer handle to set argument */
+       void * uarg);                             /* The argument to the function     */
+
+/************************************* MESSAGE ***************************************/
+NOTE: Here are The explication of the APIs for message. Before we use this module, 
+we need to set the definition of D_ENABLE_MESSAGE_QUEUE to 1u in config.h.
+
+T_msgq_handl    msgq_handl;                  /* Declare the msgq handle as an ID     */
+void I_create_msgq(T_msgq_handl *handl);     /* The address of the msgq handle       */
+void I_drop_msgq(T_msgq_handl *handl);       /* The msgq handle to be deleted        */
+void I_lock_msgq(T_msgq_handl handl);        /* The msgq handle to be locked         */
+void I_unlock_msgq(T_msgq_handl handl);      /* The msgq handle to be unlocked       */
+
+RESULT I_send_msg(T_msgq_handl handl,        /* The msgq handle to be sent           */ 
+        void *pdata,                         /* The message data pointer             */
+        DWORD size,                          /* The message size                     */
+        DWORD afterms);                      /* It'll return after specified Ms      */
+
+RESULT I_send_msgisr(T_msgq_handl handl,     /* The msgq handle to be sent in ISR    */
+        void *pdata,                         /* The message data pointer             */
+        DWORD size);                         /* The message size                     */
+
+RESULT I_wait_for_msg(T_msgq_handl handl,    /* The msgq handle to be waited         */
+        INT8U isfetch,                       /* Fetch the msg from msgq or only read */
+        DWORD afterms);                      /* It'll return after specified Ms      */
+
+void* I_get_msg_data(void);              /* return the received message data pointer */
+DWORD I_get_msg_size(void);              /* return the received message size         */
+
+/************************************ SEMAPHORE **************************************/
+NOTE: Here are The explication of the APIs for semaphore. Before we use this module, 
+we need to set the definition of D_ENABLE_SEMAPHORE to 1u in config.h.
+
+T_sem_handl      sem_handl;              /* Declare the semaphore handle as an ID    */
+void I_create_sem(T_sem_handl* handl,    /* The address of the semaphore handle      */
+        INT8U type,                      /* The type of the semaphore                */
+        DWORD initv);                    /* The initial value of the semaphore       */
+
+void I_drop_sem(T_sem_handl *handl);     /* The semaphore handle to be deleted       */
+void I_lock_sem(T_sem_handl handl);      /* The semaphore handle to be locked        */
+void I_unlock_sem(T_sem_handl handl);    /* The semaphore handle to be unlocked      */
+RESULT I_post_sem(T_sem_handl handl);    /* The semaphore handle to be posted        */
+RESULT I_post_semisr(T_sem_handl handl); /* The semaphore handle to be posted in ISR */
+
+RESULT I_wait_for_sem(T_sem_handl handl, /* The semaphore handle to be waited for    */
+        DWORD afterms);                  /* It'll return after specified Ms          */
+
+RESULT I_wait_for_mults(T_sem_handl* handl,/* The semaphore handles to be waited for */
+        DWORD afterms);                    /* It'll return after specified Ms        */
+/******************************** THANKS FOR READING *********************************/
