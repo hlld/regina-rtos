@@ -1,6 +1,6 @@
 /**
- * ------------------------------------------------------------------------------------------
- * Regina V2.0 - Copyright (C) 2018 Hlld.
+ * **************************************************************************************
+ * Regina V3.0 - Copyright (C) 2019 Hlld.
  * All rights reserved
  *
  * This file is part of Regina.
@@ -17,31 +17,29 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Regina.  If not, see <http://www.gnu.org/licenses/>.
- * ------------------------------------------------------------------------------------------
+ * **************************************************************************************
  */
 
-#include "regina.h"
+#include "../inc/regina.h"
 
+#define task_prior 1u
+#define task_stack_size 200u
+rt_task_handle task_hdl;
 
-#if D_ENABLE_SWITCH_HOOK
-__weak void task_switch_in_hook(T_task_handl handl)
+void taks_func(rt_pvoid parg)
 {
+	for (; ;) {
+		rf_sleep(500);
+		rf_print("Regina task is running\n");
+	}
 }
 
-__weak void task_switch_out_hook(T_task_handl handl)
+int main(int argc, char* argv[])
 {
-}
-#endif
+	rf_setup_rtos();
 
-#if D_ENABLE_IDLE_TASK_HOOK
-__weak void IDLE_task_hook(void)
-{
-}
-#endif
+	rf_create_task(task_hdl, task_prior, task_stack_size, taks_func, NULL);
 
-#if D_ENABLE_HEART_BEAT_HOOK
-__weak void tick_irq_hook(void)
-{
+	rf_start_rtos();
 }
-#endif
-/* ----------------------------------- End of file --------------------------------------- */
+
